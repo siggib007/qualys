@@ -1,0 +1,15 @@
+# This is a configuration file for Qualys API scripts
+# Created 11/1/2017 by Siggi Bjarnason
+
+# Base API URL and other base API requirements
+APIBaseURL=https://qualysapi.qg2.apps.qualys.com/
+APIRequestHeader=VMAS
+
+#Qualys portal login authentication.
+QUserID=xxxxxx
+QUserPWD=xxxxxxxx
+
+# Database stuff
+Server=localhost
+dbUser=MyScriptUser
+dbPWD=supersecretstrongDBpassword

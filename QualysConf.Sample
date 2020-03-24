@@ -1,0 +1,11 @@
+# This is a configuration file for Qualys API scripts
+# Created 11/1/2017 by Siggi Bjarnason
+
+# Base API URL and other base API requirements
+APIBaseURL=https://qualysapi.qg2.apps.qualys.com
+APIRequestHeader=MyScanningTest
+APIFunction=api/2.0/fo/scan
+
+#Qualys portal login authentication.
+QUserID=xxxxxxxxxx
+QUserPWD=yyyyyyyyyyyyyyyy

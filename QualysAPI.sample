@@ -1,0 +1,13 @@
+# This is a configuration file for Qualys API scripts
+# Created 11/1/2017 by Siggi Bjarnason
+
+# Base API URL and other base API requirements
+APIBaseURL=https://qualysapi.qg2.apps.qualys.com
+APIRequestHeader=MyAPITest
+
+#Qualys portal login authentication.
+QUserID=xxxxxxxxxxx
+QUserPWD=yyyyyyyyyyyyyy
+
+#Various config items
+SaveLocation=C:\Users\sbjarna\OneDrive - T-Mobile USA\WorkDocs\VMAS\API Work
