@@ -3,5 +3,7 @@
 *.ini
 *.json
 *.zip
+*.rar
 *.rpm
 *.bak
+Logs/
