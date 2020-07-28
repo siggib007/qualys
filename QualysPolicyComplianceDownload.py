@@ -307,29 +307,29 @@ def main():
             iNumRows = len(APIResponse["POLICY_LIST_OUTPUT"]["RESPONSE"]["POLICY_LIST"]["POLICY"])
             LogEntry ("Number of policys: {}".format(iNumRows))
             for dictTemp in APIResponse["POLICY_LIST_OUTPUT"]["RESPONSE"]["POLICY_LIST"]["POLICY"]:
-              print (" {} : {}".format(dictTemp["ID"],dictTemp["TITLE"]))
+              LogEntry (" {} : {}".format(dictTemp["ID"],dictTemp["TITLE"]))
               lstPolicyID.append(dictTemp["ID"])
           else:
             iNumRows = 1
             LogEntry ("Number of policys: {}".format(iNumRows))
             dictTemp = APIResponse["POLICY_LIST_OUTPUT"]["RESPONSE"]["POLICY_LIST"]["POLICY"]
-            print (" {} : {}".format(dictTemp["ID"],dictTemp["TITLE"]))
+            LogEntry (" {} : {}".format(dictTemp["ID"],dictTemp["TITLE"]))
             lstPolicyID.append(dictTemp["ID"])
         else:
-          LogEntry ("There is no policy list. Here is the APIResponse:{}".format(APIResponse))
+          LogEntry ("There is no policy list. Here is the APIResponse:{}".format(APIResponse),True)
       else:
-        LogEntry ("There is no response object. Here is the APIResponse:{}".format(APIResponse))
+        LogEntry ("There is no response object. Here is the APIResponse:{}".format(APIResponse),True)
     else:
-      LogEntry ("There is no policy list output. Here is the APIResponse:{}".format(APIResponse))
+      LogEntry ("There is no policy list output. Here is the APIResponse:{}".format(APIResponse),True)
   else:
-    LogEntry ("API Response neither a dictionary nor a string. Here is what I got: {}".format(APIResponse))
+    LogEntry ("API Response neither a dictionary nor a string. Here is what I got: {}".format(APIResponse),True)
 
-  print ("Policy IDs: {}".format(lstPolicyID))
+  LogEntry ("Policy IDs: {}".format(lstPolicyID))
 
   dictPayload["policy_ids"] = ",".join(lstPolicyID)
   dictPayload["action"] = "list"
   dictPayload["details"] = "All"
-  print ("Payload: {}".format(dictPayload))
+  LogEntry ("Payload: {}".format(dictPayload))
   strAPI = "/api/2.0/fo/compliance/posture/info/"
   strURL = strBaseURL + strAPI
   strMethod="post"
