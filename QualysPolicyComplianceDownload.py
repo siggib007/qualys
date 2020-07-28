@@ -132,6 +132,7 @@ def MakeAPICall (strURL, dictHeader, strMethod, strUserName, strPWD, dictPayload
     iErrCode = WebRequest.status_code
     iErrText = WebRequest.text
 
+  strType = "xml"
   if WebRequest.text[:2] == "[{":
     strType = "json"
   if WebRequest.text[:5] == "<?xml":
