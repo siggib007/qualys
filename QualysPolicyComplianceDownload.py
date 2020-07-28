@@ -108,7 +108,7 @@ def MakeAPICall (strURL, dictHeader, strMethod, strUserName, strPWD, dictPayload
   # LogEntry ("Doing a {} to URL: \n {}\n".format(strMethod,strURL))
   try:
     if strMethod.lower() == "get":
-      WebRequest = requests.get(strURL,timeout=iTimeOut, headers=dictHeader, auth=(strUserName, strPWD))
+      WebRequest = requests.get(strURL, headers=dictHeader, auth=(strUserName, strPWD))
       # LogEntry ("get executed")
     if strMethod.lower() == "post":
       if dictPayload != "":
