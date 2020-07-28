@@ -17,6 +17,7 @@ import sys
 import requests
 import os
 import xmltodict
+import xml.parsers.expat
 import pymysql
 import json
 import platform
@@ -108,7 +109,7 @@ def MakeAPICall (strURL, dictHeader, strMethod, strUserName, strPWD, dictPayload
   # LogEntry ("Doing a {} to URL: \n {}\n".format(strMethod,strURL))
   try:
     if strMethod.lower() == "get":
-      WebRequest = requests.get(strURL, headers=dictHeader, auth=(strUserName, strPWD))
+      WebRequest = requests.get(strURL, headers=dictHeader, verify=False, auth=(strUserName, strPWD))
       # LogEntry ("get executed")
     if strMethod.lower() == "post":
       if dictPayload != "":
@@ -131,14 +132,46 @@ def MakeAPICall (strURL, dictHeader, strMethod, strUserName, strPWD, dictPayload
     iErrCode = WebRequest.status_code
     iErrText = WebRequest.text
 
-  if iErrCode != "" or WebRequest.status_code !=200:
-    return "There was a problem with your request. Error {}: {}".format(iErrCode,iErrText)
-  else:
+  if WebRequest.text[:2] == "[{":
+    strType = "json"
+  if WebRequest.text[:5] == "<?xml":
+    strType = "xml"
+  if strType.lower() == "xml":
     try:
-      return WebRequest.json()
-    except Exception as err:
-      LogEntry ("Issue with converting response to json. "
-        "Here are the first 99 character of the response: {}".format(WebRequest.text[:99]))
+      dictResponse = xmltodict.parse(WebRequest.text)
+      print ("xml loaded into dictionary")
+    except xml.parsers.expat.ExpatError as err:
+      print ("Expat Error: {}\n{}".format(err,WebRequest.text))
+      iErrCode = "Expat Error"
+      iErrText = "Expat Error: {}\n{}".format(err,WebRequest.text)
+  elif strType == "json" :
+    dictResponse = json.loads(WebRequest.text)
+    print ("json loaded into dictionary")
+  else:
+    dictResponse = {}
+
+  if isinstance(dictResponse,dict):
+    if "SIMPLE_RETURN" in dictResponse:
+      try:
+        if "CODE" in dictResponse["SIMPLE_RETURN"]["RESPONSE"]:
+          iErrCode = dictResponse["SIMPLE_RETURN"]["RESPONSE"]["CODE"]
+          iErrText = dictResponse["SIMPLE_RETURN"]["RESPONSE"]["TEXT"]
+      except KeyError as e:
+        print ("KeyError: {}".format(e))
+        print (WebRequest.text)
+        iErrCode = "Unknown"
+        iErrText = "Unexpected error"
+  elif isinstance(dictResponse,list):
+    print ("Response is a list of {} elements".format(len(dictResponse)))
+    print ("First element is of type {}".format(type(dictResponse[0])))
+  else:
+    print ("Response not a dictionary or a list. it's {}".format(type(dictResponse)))
+    sys.exit(8)
+
+  if iErrCode != "" or WebRequest.status_code !=200:
+    return "There was a problem with your request. HTTP error {} code {} {}".format(WebRequest.status_code,iErrCode,iErrText)
+  else:
+    return dictResponse
 
 def processConf(strConf_File):
 
