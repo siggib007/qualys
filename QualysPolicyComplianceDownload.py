@@ -85,7 +85,7 @@ def LogEntry(strMsg,bAbort=False):
     SendNotification("{} on {}: {}".format (strScriptName,strScriptHost,strMsg[:99]))
     CleanExit("")
 
-def MakeAPICall (strURL, dictHeader, strMethod,  dictPayload=""):
+def MakeAPICall (strURL, dictHeader, strMethod, strUserName, strPWD, dictPayload=""):
 
   global tLastCall
   global iTotalSleep
@@ -204,8 +204,6 @@ def main():
   global bNotifyEnabled
   global iMinQuiet
   global iTimeOut
-  global strUserName
-  global strPWD
 
   dictPayload = {}
   dictHeader = {}
@@ -292,7 +290,8 @@ def main():
   strAPI = "api/2.0/fo/compliance/policy/?"
   strAction = "action=list"
   strURL = strBaseURL + strAPI + strAction
-  APIResponse = MakeAPICall(strURL,dictHeader,strMethod, dictPayload)
+  LogEntry ("Making a query for a Policy List using {} {}".format(strMethod.upper(),strURL))
+  APIResponse = MakeAPICall(strURL, dictHeader, strMethod, strUserName, strPWD, dictPayload)
   if isinstance(APIResponse,str):
     LogEntry(APIResponse,True)
   elif isinstance(APIResponse,dict):
@@ -334,7 +333,7 @@ def main():
   strAPI = "/api/2.0/fo/compliance/posture/info/"
   strURL = strBaseURL + strAPI
   strMethod="post"
-  APIResponse = MakeAPICall(strURL,dictHeader,strMethod, dictPayload)
+  APIResponse = MakeAPICall(strURL, dictHeader, strMethod, strUserName, strPWD, dictPayload)
   print(APIResponse)
   objOutFile = open(strFileout,"w",1)
   objOutFile.write(APIResponse)
