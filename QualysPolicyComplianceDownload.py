@@ -85,7 +85,7 @@ def LogEntry(strMsg,bAbort=False):
     SendNotification("{} on {}: {}".format (strScriptName,strScriptHost,strMsg[:99]))
     CleanExit("")
 
-def MakeAPICall (strURL, strHeader, strMethod,  dictPayload=""):
+def MakeAPICall (strURL, dictHeader, strMethod,  dictPayload=""):
 
   global tLastCall
   global iTotalSleep
@@ -108,13 +108,13 @@ def MakeAPICall (strURL, strHeader, strMethod,  dictPayload=""):
   # LogEntry ("Doing a {} to URL: \n {}\n".format(strMethod,strURL))
   try:
     if strMethod.lower() == "get":
-      WebRequest = requests.get(strURL, headers=strHeader, verify=False, auth=(strUserName, strPWD))
+      WebRequest = requests.get(strURL,timeout=iTimeOut, headers=dictHeader, auth=(strUserName, strPWD))
       # LogEntry ("get executed")
     if strMethod.lower() == "post":
       if dictPayload != "":
-        WebRequest = requests.post(strURL, json= dictPayload, headers=strHeader, verify=False,  auth=(strUserName, strPWD))
+        WebRequest = requests.post(strURL, json= dictPayload, headers=dictHeader, verify=False,  auth=(strUserName, strPWD))
       else:
-        WebRequest = requests.post(strURL, headers=strHeader, verify=False, auth=(strUserName, strPWD))
+        WebRequest = requests.post(strURL, headers=dictHeader, verify=False, auth=(strUserName, strPWD))
       # LogEntry ("post executed")
   except Exception as err:
     LogEntry ("Issue with API call. {}".format(err))
@@ -207,6 +207,11 @@ def main():
   global strUserName
   global strPWD
 
+  dictPayload = {}
+  dictHeader = {}
+  lstPolicyID=[]
+  
+  iTimeOut = 120
   ISO = time.strftime("-%Y-%m-%d-%H-%M-%S")
   strScriptName = os.path.basename(sys.argv[0])
   iLoc = sys.argv[0].rfind(".")
@@ -235,10 +240,6 @@ def main():
   print ("Logs saved to {}".format(strLogFile))
   objLogOut = open(strLogFile,"w",1)
 
-  dictPayload = {}
-  iTimeOut = 120
-  lstPolicyID=[]
-
   dictConfig = processConf(strConf_File)
 
   if "QUserID" in dictConfig:
@@ -249,7 +250,7 @@ def main():
 
 
   if "APIRequestHeader" in dictConfig:
-    strHeader={'X-Requested-With': dictConfig["APIRequestHeader"]}
+    dictHeader["X-Requested-With"] = dictConfig["APIRequestHeader"]
 
   if "NotifyToken" in dictConfig and "NotifyChannel" in dictConfig and "NotificationURL" in dictConfig:
     bNotifyEnabled = True
@@ -291,7 +292,7 @@ def main():
   strAPI = "api/2.0/fo/compliance/policy/?"
   strAction = "action=list"
   strURL = strBaseURL + strAPI + strAction
-  APIResponse = MakeAPICall(strURL,strHeader,strMethod, dictPayload)
+  APIResponse = MakeAPICall(strURL,dictHeader,strMethod, dictPayload)
   if isinstance(APIResponse,str):
     LogEntry(APIResponse,True)
   elif isinstance(APIResponse,dict):
@@ -333,7 +334,7 @@ def main():
   strAPI = "/api/2.0/fo/compliance/posture/info/"
   strURL = strBaseURL + strAPI
   strMethod="post"
-  APIResponse = MakeAPICall(strURL,strHeader,strMethod, dictPayload)
+  APIResponse = MakeAPICall(strURL,dictHeader,strMethod, dictPayload)
   print(APIResponse)
   objOutFile = open(strFileout,"w",1)
   objOutFile.write(APIResponse)
