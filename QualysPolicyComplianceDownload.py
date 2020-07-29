@@ -241,6 +241,7 @@ def main():
 
   dictPayload = {}
   dictHeader = {}
+  dictParams = {}
   lstPolicyID=[]
   
   iTimeOut = 120
@@ -360,13 +361,14 @@ def main():
 
   LogEntry ("Policy IDs: {}".format(lstPolicyID))
 
-  dictPayload["policy_ids"] = ",".join(lstPolicyID)
-  dictPayload["action"] = "list"
-  dictPayload["details"] = "All"
-  LogEntry ("Payload: {}".format(dictPayload))
+  dictParams["policy_ids"] = ",".join(lstPolicyID)
+  dictParams["action"] = "list"
+  dictParams["details"] = "All"
+  LogEntry ("Payload: {}".format(dictParams))
   strAPI = "/api/2.0/fo/compliance/posture/info/"
-  strURL = strBaseURL + strAPI
-  strMethod="post"
+  strListScans = urlparse.urlencode(dictParams)
+  strURL = strBaseURL + strAPI + "?" + strListScans
+  strMethod="get"
   LogEntry ("Calling API for Posture Details using {} {}".format(strMethod.upper(),strURL))
   APIResponse = MakeAPICall(strURL, dictHeader, strMethod, strUserName, strPWD, dictPayload)
   print(APIResponse)
