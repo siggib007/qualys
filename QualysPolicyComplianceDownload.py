@@ -361,23 +361,31 @@ def main():
 
   LogEntry ("Policy IDs: {}".format(lstPolicyID))
 
-  dictParams["policy_ids"] = ",".join(lstPolicyID)
-  dictParams["action"] = "list"
-  dictParams["details"] = "All"
-  LogEntry ("Payload: {}".format(dictParams))
-  strAPI = "/api/2.0/fo/compliance/posture/info/"
-  strListScans = urlparse.urlencode(dictParams)
-  strURL = strBaseURL + strAPI + "?" + strListScans
-  strMethod="get"
-  LogEntry ("Calling API for Posture Details using {} {}".format(strMethod.upper(),strURL))
-  APIResponse = MakeAPICall(strURL, dictHeader, strMethod, strUserName, strPWD, dictPayload)
-  if isinstance(APIResponse,str):
-    LogEntry (APIResponse)
-  else:
-    print(APIResponse)
-    objOutFile = open(strFileout,"w",1)
-    objOutFile.write(APIResponse)
-    objOutFile.close()
+  iStep = 0
+  lstPolicyChunks = []
+  while iStep < len(lstPolicyID):
+    lstPolicyChunks.append(",".join(lstPolicyID[iStep:iStep+10]))
+    iStep += 10
+  
+  objOutFile = open(strFileout,"w",1)
+  for strPolicyList in lstPolicyChunks:
+    dictParams["policy_ids"] = strPolicyList
+    dictParams["action"] = "list"
+    dictParams["details"] = "All"
+    LogEntry ("Payload: {}".format(dictParams))
+    strAPI = "/api/2.0/fo/compliance/posture/info/"
+    strListScans = urlparse.urlencode(dictParams)
+    strURL = strBaseURL + strAPI + "?" + strListScans
+    strMethod="get"
+    LogEntry ("Calling API for Posture Details using {} {}".format(strMethod.upper(),strURL))
+    APIResponse = MakeAPICall(strURL, dictHeader, strMethod, strUserName, strPWD, dictPayload)
+    if isinstance(APIResponse,str):
+      LogEntry (APIResponse)
+    else:
+      # print(APIResponse)
+      objOutFile.write(APIResponse)
+  
+  objOutFile.close()
 
   SendNotification ("{} completed on {}!".format(strScriptName,strScriptHost))
   LogEntry ("All Done!")
