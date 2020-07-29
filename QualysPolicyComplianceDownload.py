@@ -90,6 +90,7 @@ def MakeAPICall (strURL, dictHeader, strMethod, strUserName, strPWD, dictPayload
 
   global tLastCall
   global iTotalSleep
+  global strResponse
 
   fTemp = time.time()
   fDelta = fTemp - tLastCall
@@ -133,20 +134,21 @@ def MakeAPICall (strURL, dictHeader, strMethod, strUserName, strPWD, dictPayload
     iErrText = WebRequest.text
 
   strType = "xml"
-  if WebRequest.text[:2] == "[{":
+  strResponse = WebRequest.text
+  if strResponse[:2] == "[{":
     strType = "json"
-  if WebRequest.text[:5] == "<?xml":
+  if strResponse[:5] == "<?xml":
     strType = "xml"
   if strType.lower() == "xml":
     try:
-      dictResponse = xmltodict.parse(WebRequest.text)
+      dictResponse = xmltodict.parse(strResponse)
       LogEntry ("xml loaded into dictionary")
     except xml.parsers.expat.ExpatError as err:
-      LogEntry ("Expat Error: {}\n{}".format(err,WebRequest.text))
+      LogEntry ("Expat Error: {}\n{}".format(err,strResponse))
       iErrCode = "Expat Error"
-      iErrText = "Expat Error: {}\n{}".format(err,WebRequest.text)
+      iErrText = "Expat Error: {}\n{}".format(err,strResponse)
   elif strType == "json" :
-    dictResponse = json.loads(WebRequest.text)
+    dictResponse = json.loads(strResponse)
     LogEntry ("json loaded into dictionary")
   else:
     dictResponse = {}
@@ -159,7 +161,7 @@ def MakeAPICall (strURL, dictHeader, strMethod, strUserName, strPWD, dictPayload
           iErrText = dictResponse["SIMPLE_RETURN"]["RESPONSE"]["TEXT"]
       except KeyError as e:
         LogEntry ("KeyError: {}".format(e))
-        LogEntry (WebRequest.text)
+        LogEntry (strResponse)
         iErrCode = "Unknown"
         iErrText = "Unexpected error"
   elif isinstance(dictResponse,list):
@@ -383,7 +385,7 @@ def main():
       LogEntry (APIResponse)
     else:
       # print(APIResponse)
-      objOutFile.write(APIResponse)
+      objOutFile.write(strResponse)
   
   objOutFile.close()
 
