@@ -367,6 +367,7 @@ def main():
   strAPI = "/api/2.0/fo/compliance/posture/info/"
   strURL = strBaseURL + strAPI
   strMethod="post"
+  LogEntry ("Calling API for Posture Details using {} {}".format(strMethod.upper(),strURL))
   APIResponse = MakeAPICall(strURL, dictHeader, strMethod, strUserName, strPWD, dictPayload)
   print(APIResponse)
   objOutFile = open(strFileout,"w",1)
