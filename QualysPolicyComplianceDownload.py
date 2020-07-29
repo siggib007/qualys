@@ -140,14 +140,14 @@ def MakeAPICall (strURL, dictHeader, strMethod, strUserName, strPWD, dictPayload
   if strType.lower() == "xml":
     try:
       dictResponse = xmltodict.parse(WebRequest.text)
-      print ("xml loaded into dictionary")
+      LogEntry ("xml loaded into dictionary")
     except xml.parsers.expat.ExpatError as err:
-      print ("Expat Error: {}\n{}".format(err,WebRequest.text))
+      LogEntry ("Expat Error: {}\n{}".format(err,WebRequest.text))
       iErrCode = "Expat Error"
       iErrText = "Expat Error: {}\n{}".format(err,WebRequest.text)
   elif strType == "json" :
     dictResponse = json.loads(WebRequest.text)
-    print ("json loaded into dictionary")
+    LogEntry ("json loaded into dictionary")
   else:
     dictResponse = {}
 
@@ -158,15 +158,15 @@ def MakeAPICall (strURL, dictHeader, strMethod, strUserName, strPWD, dictPayload
           iErrCode = dictResponse["SIMPLE_RETURN"]["RESPONSE"]["CODE"]
           iErrText = dictResponse["SIMPLE_RETURN"]["RESPONSE"]["TEXT"]
       except KeyError as e:
-        print ("KeyError: {}".format(e))
-        print (WebRequest.text)
+        LogEntry ("KeyError: {}".format(e))
+        LogEntry (WebRequest.text)
         iErrCode = "Unknown"
         iErrText = "Unexpected error"
   elif isinstance(dictResponse,list):
-    print ("Response is a list of {} elements".format(len(dictResponse)))
-    print ("First element is of type {}".format(type(dictResponse[0])))
+    LogEntry ("Response is a list of {} elements".format(len(dictResponse)))
+    LogEntry ("First element is of type {}".format(type(dictResponse[0])))
   else:
-    print ("Response not a dictionary or a list. it's {}".format(type(dictResponse)))
+    LogEntry ("Response not a dictionary or a list. it's {}".format(type(dictResponse)))
     sys.exit(8)
 
   if iErrCode != "" or WebRequest.status_code !=200:
@@ -371,10 +371,13 @@ def main():
   strMethod="get"
   LogEntry ("Calling API for Posture Details using {} {}".format(strMethod.upper(),strURL))
   APIResponse = MakeAPICall(strURL, dictHeader, strMethod, strUserName, strPWD, dictPayload)
-  print(APIResponse)
-  objOutFile = open(strFileout,"w",1)
-  objOutFile.write(APIResponse)
-  objOutFile.close()
+  if isinstance(APIResponse,str):
+    LogEntry (APIResponse)
+  else:
+    print(APIResponse)
+    objOutFile = open(strFileout,"w",1)
+    objOutFile.write(APIResponse)
+    objOutFile.close()
 
   SendNotification ("{} completed on {}!".format(strScriptName,strScriptHost))
   LogEntry ("All Done!")
