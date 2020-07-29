@@ -379,14 +379,28 @@ def main():
     strListScans = urlparse.urlencode(dictParams)
     strURL = strBaseURL + strAPI + "?" + strListScans
     strMethod="get"
-    LogEntry ("Calling API for Posture Details using {} {}".format(strMethod.upper(),strURL))
-    APIResponse = MakeAPICall(strURL, dictHeader, strMethod, strUserName, strPWD, dictPayload)
-    if isinstance(APIResponse,str):
-      LogEntry (APIResponse)
-    else:
-      # print(APIResponse)
-      objOutFile.write(strResponse)
-  
+    LogEntry ("Streaming API for Posture Details using {} {}".format(strMethod.upper(),strURL))
+    try:
+      WebRequest = requests.get(strURL, headers=dictHeader, verify=False, stream=True, auth=(strUserName, strPWD))
+      LogEntry ("get executed")
+    except Exception as err:
+      LogEntry ("Issue with API call. {}".format(err),True)
+
+    if isinstance(WebRequest,requests.models.Response)==False:
+      LogEntry ("response is unknown type",True)
+
+    LogEntry ("call resulted in status code {}".format(WebRequest.status_code))
+    LogEntry ("Starting to stream the results to {}".format(strFileout))
+    iLineNum = 1
+    try:
+      for strLine in WebRequest.iter_lines():
+        if strLine:
+          strLine = strLine.decode("ascii","ignore")
+          print ("Downloaded {} lines.".format(iLineNum),end="\r")
+          iLineNum += 1
+          objOutFile.write ("{}\n".format(strLine))
+    except Exception as err:
+      LogEntry ("Unexpected issue: {}".format(err),True)  
   objOutFile.close()
 
   SendNotification ("{} completed on {}!".format(strScriptName,strScriptHost))
