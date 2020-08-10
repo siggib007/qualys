@@ -369,8 +369,11 @@ def main():
     lstPolicyChunks.append(",".join(lstPolicyID[iStep:iStep+10]))
     iStep += 10
   
-  objOutFile = open(strFileout,"w",1)
+  iCount = 1
   for strPolicyList in lstPolicyChunks:
+    iLoc = strFileout.rfind(".")
+    strFileChunkName = "{}-{}{}".format(strFileout[:iLoc],iCount,strFileout[iLoc:])
+    objOutFile = open(strFileChunkName,"w",1)
     dictParams["policy_ids"] = strPolicyList
     dictParams["action"] = "list"
     dictParams["details"] = "All"
@@ -401,7 +404,8 @@ def main():
           objOutFile.write ("{}\n".format(strLine))
     except Exception as err:
       LogEntry ("Unexpected issue: {}".format(err),True)  
-  objOutFile.close()
+    objOutFile.close()
+    iCount += 1
 
   SendNotification ("{} completed on {}!".format(strScriptName,strScriptHost))
   LogEntry ("All Done!")
