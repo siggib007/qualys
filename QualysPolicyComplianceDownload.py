@@ -393,7 +393,7 @@ def main():
       LogEntry ("response is unknown type",True)
 
     LogEntry ("call resulted in status code {}".format(WebRequest.status_code))
-    LogEntry ("Starting to stream the results to {}".format(strFileout))
+    LogEntry ("Starting to stream the results to {}".format(strFileChunkName))
     iLineNum = 1
     try:
       for strLine in WebRequest.iter_lines():
