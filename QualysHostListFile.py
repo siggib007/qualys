@@ -244,7 +244,7 @@ LogEntry ("API Function: {}".format(strAPIFunction))
 strMethod = "get"
 dictParams = {}
 dictParams["action"] = "list"
-dictParams["truncation_limit"] = 10000
+dictParams["truncation_limit"] = 100000
 # dictParams["ids"] = "119710152,171444421,129630824,119729204,119729206"
 
 strListScans = urlparse.urlencode(dictParams)
@@ -261,9 +261,11 @@ while bMoreData:
   if rawAPIResponse != "":
     iLoc = strFileout.rfind(".")
     strFileChunkName = "{}-{}{}".format(strFileout[:iLoc],iCount,strFileout[iLoc:])
+    LogEntry("Writing results to {}".format(strFileChunkName))
     objOutFile = open(strFileChunkName,"w",1)
     objOutFile.write(rawAPIResponse)
     objOutFile.close()
+    iCount += 1
   if isinstance (APIResponse,str):
     LogEntry (APIResponse)
     bMoreData = False
@@ -272,7 +274,7 @@ while bMoreData:
       if "HOST" in APIResponse["HOST_LIST_OUTPUT"]["RESPONSE"]["HOST_LIST"]:
         if isinstance(APIResponse["HOST_LIST_OUTPUT"]["RESPONSE"]["HOST_LIST"]["HOST"],list):
           iResultCount = len(APIResponse["HOST_LIST_OUTPUT"]["RESPONSE"]["HOST_LIST"]["HOST"])
-          # iTotalCount += iResultCount
+          iTotalCount += iResultCount
           LogEntry ("{} hosts in results".format(iResultCount))
           # for dictHosts in APIResponse["HOST_LIST_OUTPUT"]["RESPONSE"]["HOST_LIST"]["HOST"]:
           #   UpdateDB (dictHosts)
@@ -291,5 +293,6 @@ while bMoreData:
       APIResponse = MakeAPICall(strURL,strHeader,strUserName,strPWD,strMethod)
     else:
       bMoreData = False
+    
 
 objLogOut.close()
