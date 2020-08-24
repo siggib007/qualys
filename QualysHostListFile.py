@@ -66,6 +66,7 @@ strdbNow = time.strftime("%Y-%m-%d %H:%M:%S")
 
 def CleanExit(strCause):
   objLogOut.close()
+  objOutFile.close()
   sys.exit(9)
 
 def LogEntry(strMsg,bAbort=False):
@@ -91,6 +92,7 @@ def processConf():
   global strNotifyToken
   global strNotifyChannel
   global strDBType
+  global strFileout
 
   if os.path.isfile(strConf_File):
     LogEntry ("Configuration File exists")
@@ -145,6 +147,8 @@ def processConf():
         strNotifyToken = strValue
       if strVarName == "DBType":
         strDBType  = strValue
+      if strVarName == "OutfileName":
+        strFileout  = strValue
 
   if strBaseURL[-1:] != "/":
     strBaseURL += "/"
@@ -235,17 +239,25 @@ LogEntry ("API Function: {}".format(strAPIFunction))
 strMethod = "get"
 dictParams = {}
 dictParams["action"] = "list"
+dictParams["truncation_limit"] = 10000
+dictParams["ids"] = "119710152,171444421,129630824,119729204,119729206"
 
 strListScans = urlparse.urlencode(dictParams)
 bMoreData = True
 iTotalCount = 0
 iTotalTagCount = 0
+iCount = 1
 
 strURL = strBaseURL + strAPIFunction +"?" + strListScans
 
 APIResponse = MakeAPICall(strURL,strHeader,strUserName,strPWD,strMethod)
 
 while bMoreData:
+  iLoc = strFileout.rfind(".")
+  strFileChunkName = "{}-{}{}".format(strFileout[:iLoc],iCount,strFileout[iLoc:])
+  objOutFile = open(strFileChunkName,"w",1)
+  objOutFile.write(APIResponse)
+  objOutFile.close()
   if isinstance (APIResponse,str):
     LogEntry (APIResponse)
     bMoreData = False
@@ -256,9 +268,9 @@ while bMoreData:
           iResultCount = len(APIResponse["HOST_LIST_OUTPUT"]["RESPONSE"]["HOST_LIST"]["HOST"])
           # iTotalCount += iResultCount
           LogEntry ("{} hosts in results".format(iResultCount))
-          for dictHosts in APIResponse["HOST_LIST_OUTPUT"]["RESPONSE"]["HOST_LIST"]["HOST"]:
-            # UpdateDB (dictHosts)
-            iTotalCount += 1
+          # for dictHosts in APIResponse["HOST_LIST_OUTPUT"]["RESPONSE"]["HOST_LIST"]["HOST"]:
+          #   UpdateDB (dictHosts)
+          #   iTotalCount += 1
         else:
           iTotalCount += 1
           LogEntry ("Only one host in results")
@@ -273,5 +285,5 @@ while bMoreData:
       APIResponse = MakeAPICall(strURL,strHeader,strUserName,strPWD,strMethod)
     else:
       bMoreData = False
-LogEntry ("Doing validation checks")
+
 objLogOut.close()
