@@ -286,6 +286,7 @@ while bMoreData:
           iTotalCount += 1
           LogEntry ("Only one host in results")
           # UpdateDB (APIResponse["HOST_LIST_OUTPUT"]["RESPONSE"]["HOST_LIST"]["HOST"])
+        LogEntry("total processed so far {}".format(iTotalCount))
       else:
         LogEntry("there is hosts list but no hosts, weird!!!!")
     else:
