@@ -93,6 +93,7 @@ def processConf():
   global strNotifyChannel
   global strDBType
   global strFileout
+  global iBatchSize
 
   if os.path.isfile(strConf_File):
     LogEntry ("Configuration File exists")
@@ -149,6 +150,8 @@ def processConf():
         strDBType  = strValue
       if strVarName == "OutfileName":
         strFileout  = strValue
+      if strVarName == "BatchSize":
+        iBatchSize = int(strValue)
 
   if strBaseURL[-1:] != "/":
     strBaseURL += "/"
@@ -244,7 +247,7 @@ LogEntry ("API Function: {}".format(strAPIFunction))
 strMethod = "get"
 dictParams = {}
 dictParams["action"] = "list"
-dictParams["truncation_limit"] = 100000
+dictParams["truncation_limit"] = iBatchSize
 # dictParams["ids"] = "119710152,171444421,129630824,119729204,119729206"
 
 strListScans = urlparse.urlencode(dictParams)
