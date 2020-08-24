@@ -156,6 +156,7 @@ def processConf():
   LogEntry ("Done processing configuration, moving on")
 
 def MakeAPICall (strURL, strHeader, strUserName,strPWD, strMethod):
+  global rawAPIResponse
 
   iErrCode = ""
   iErrText = ""
@@ -179,6 +180,10 @@ def MakeAPICall (strURL, strHeader, strUserName,strPWD, strMethod):
     iErrText = "response is unknown type"
 
   LogEntry ("call resulted in status code {}".format(WebRequest.status_code))
+  if WebRequest.status_code == 200:
+    rawAPIResponse = WebRequest.text
+  else:
+    rawAPIResponse = ""
 
   try:
     dictResponse = xmltodict.parse(WebRequest.text)
@@ -240,7 +245,7 @@ strMethod = "get"
 dictParams = {}
 dictParams["action"] = "list"
 dictParams["truncation_limit"] = 10000
-dictParams["ids"] = "119710152,171444421,129630824,119729204,119729206"
+# dictParams["ids"] = "119710152,171444421,129630824,119729204,119729206"
 
 strListScans = urlparse.urlencode(dictParams)
 bMoreData = True
@@ -253,11 +258,12 @@ strURL = strBaseURL + strAPIFunction +"?" + strListScans
 APIResponse = MakeAPICall(strURL,strHeader,strUserName,strPWD,strMethod)
 
 while bMoreData:
-  iLoc = strFileout.rfind(".")
-  strFileChunkName = "{}-{}{}".format(strFileout[:iLoc],iCount,strFileout[iLoc:])
-  objOutFile = open(strFileChunkName,"w",1)
-  objOutFile.write(APIResponse)
-  objOutFile.close()
+  if rawAPIResponse != "":
+    iLoc = strFileout.rfind(".")
+    strFileChunkName = "{}-{}{}".format(strFileout[:iLoc],iCount,strFileout[iLoc:])
+    objOutFile = open(strFileChunkName,"w",1)
+    objOutFile.write(rawAPIResponse)
+    objOutFile.close()
   if isinstance (APIResponse,str):
     LogEntry (APIResponse)
     bMoreData = False
