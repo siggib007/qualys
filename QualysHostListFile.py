@@ -199,7 +199,11 @@ def Write2CSV (dictResults):
     strHostID = dictResults["ID"]
   else:
     strHostID = "No ID"
-  objCSVOut.write("{},{},{},{}\n".format(strHostID,strDNS,strNetBIOS,strIPaddr))
+  if "OS" in dictResults:
+    strOS = dictResults["OS"]
+  else:
+    strOS = "No OS"
+  objCSVOut.write("{},{},{},{},{}\n".format(strHostID,strDNS,strNetBIOS,strIPaddr,strOS))
 
 processConf()
 
@@ -231,14 +235,16 @@ bMoreData = True
 iTotalCount = 0
 iCount = 1
 
+iLoc = strFileout.rfind(".")
+os.remove(strFileout[:iLoc])
+strCSVName = strFileout[:iLoc] + ".csv"
+objCSVOut = open(strCSVName,"w",1)
+objCSVOut.write("AssetID,DNS,NetBIOS,IP,OS\n")
+
 strURL = strBaseURL + strAPIFunction +"?" + strListScans
 
 APIResponse = MakeAPICall(strURL,strHeader,strUserName,strPWD,strMethod)
 
-iLoc = strFileout.rfind(".")
-strCSVName = strFileout[:iLoc] + ".csv"
-objCSVOut = open(strCSVName,"w",1)
-objCSVOut.write("AssetID,DNS,NetBIOS,IP\n")
 while bMoreData:
   if rawAPIResponse != "":
     strFileChunkName = "{}-{}{}".format(strFileout[:iLoc],iCount,strFileout[iLoc:])
