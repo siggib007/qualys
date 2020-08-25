@@ -304,4 +304,5 @@ while bMoreData:
     else:
       bMoreData = False
 
+LogEntry("Complete, processed {} hosts".format(iTotalCount))
 objLogOut.close()
