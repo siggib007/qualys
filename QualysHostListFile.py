@@ -203,6 +203,7 @@ def Write2CSV (dictResults):
     strOS = dictResults["OS"]
   else:
     strOS = "No OS"
+  strOS = strOS.replace(","," ")
   objCSVOut.write("{},{},{},{},{}\n".format(strHostID,strDNS,strNetBIOS,strIPaddr,strOS))
 
 processConf()
