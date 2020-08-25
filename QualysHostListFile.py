@@ -242,6 +242,12 @@ if strAPIFunction[0] == "/":
 if strAPIFunction[-1:] != "/":
   strAPIFunction += "/"
 
+strFileout = strFileout.replace("\\","/")
+if not os.path.exists(os.path.dirname(strFileout)):
+  LogEntry ("\nPath '{0}' for output files didn't exists, "
+    "so I'm creating it!\n".format(strFileout))
+  os.makedirs(os.path.dirname(strFileout))
+
 LogEntry ("API Function: {}".format(strAPIFunction))
 
 strMethod = "get"
@@ -297,6 +303,5 @@ while bMoreData:
       APIResponse = MakeAPICall(strURL,strHeader,strUserName,strPWD,strMethod)
     else:
       bMoreData = False
-    
 
 objLogOut.close()
