@@ -48,8 +48,12 @@ objLogOut = open(strLogFile,"w",1)
 iTotalCount = 0
 
 def CleanExit(strCause):
-  objLogOut.close()
-  objOutFile.close()
+  try:
+    objLogOut.close()
+    objOutFile.close()
+    objCSVOut.close()
+  except:
+    pass
   sys.exit(9)
 
 def LogEntry(strMsg,bAbort=False):
@@ -118,7 +122,7 @@ def MakeAPICall (strURL, strHeader, strUserName,strPWD, strMethod):
   iErrText = ""
   dictResponse = {}
 
-  LogEntry ("Doing a {} to URL: \n {}\n".format(strMethod,strURL))
+  LogEntry ("Doing a {} to URL: {}".format(strMethod,strURL))
   try:
     if strMethod.lower() == "get":
       WebRequest = requests.get(strURL, headers=strHeader, auth=(strUserName, strPWD))
@@ -170,6 +174,25 @@ def MakeAPICall (strURL, strHeader, strUserName,strPWD, strMethod):
   else:
     return dictResponse
 
+def Write2CSV (dictResults):
+  if "DNS" in dictResults:
+    strDNS = dictResults["DNS"]
+  else:
+    strDNS = "No DSN"
+  if "NETBIOS" in dictResults:
+    strNetBIOS = dictResults["NETBIOS"]
+  else:
+    strNetBIOS = "No NetBIOS"
+  if "IP" in dictResults:
+    strIPaddr = dictResults["IP"]
+  else:
+    strIPaddr = "No IP"
+  if "ID" in dictResults:
+    strHostID = dictResults["ID"]
+  else:
+    strHostID = "No ID"
+  objCSVOut.write("{},{},{},{}\n".format(strHostID,strDNS,strNetBIOS,strIPaddr))
+
 processConf()
 
 LogEntry("Starting Processing. Script {} running under Python version {}".format(strRealPath,strVersion))
@@ -183,8 +206,7 @@ if strAPIFunction[-1:] != "/":
 
 strFileout = strFileout.replace("\\","/")
 if not os.path.exists(os.path.dirname(strFileout)):
-  LogEntry ("\nPath '{0}' for output files didn't exists, "
-    "so I'm creating it!\n".format(strFileout))
+  LogEntry ("Path '{0}' for output files didn't exists, so I'm creating it!".format(strFileout))
   os.makedirs(os.path.dirname(strFileout))
 
 LogEntry ("API Function: {}".format(strAPIFunction))
@@ -204,9 +226,12 @@ strURL = strBaseURL + strAPIFunction +"?" + strListScans
 
 APIResponse = MakeAPICall(strURL,strHeader,strUserName,strPWD,strMethod)
 
+iLoc = strFileout.rfind(".")
+strCSVName = strFileout[:iLoc] + ".csv"
+objCSVOut = open(strCSVName,"w",1)
+objCSVOut.write("AssetID,DNS,NetBIOS,IP\n")
 while bMoreData:
   if rawAPIResponse != "":
-    iLoc = strFileout.rfind(".")
     strFileChunkName = "{}-{}{}".format(strFileout[:iLoc],iCount,strFileout[iLoc:])
     LogEntry("Writing results to {}".format(strFileChunkName))
     objOutFile = open(strFileChunkName,"w",1)
@@ -217,18 +242,19 @@ while bMoreData:
     LogEntry (APIResponse)
     bMoreData = False
   if isinstance(APIResponse,dict):
+    LogEntry("CSV Output will be written to {}".format(strCSVName))
     if "HOST_LIST" in APIResponse["HOST_LIST_OUTPUT"]["RESPONSE"]:
       if "HOST" in APIResponse["HOST_LIST_OUTPUT"]["RESPONSE"]["HOST_LIST"]:
         if isinstance(APIResponse["HOST_LIST_OUTPUT"]["RESPONSE"]["HOST_LIST"]["HOST"],list):
           iResultCount = len(APIResponse["HOST_LIST_OUTPUT"]["RESPONSE"]["HOST_LIST"]["HOST"])
           iTotalCount += iResultCount
-          LogEntry ("{} hosts in results".format(iResultCount))
-          # for dictHosts in APIResponse["HOST_LIST_OUTPUT"]["RESPONSE"]["HOST_LIST"]["HOST"]:
-          #   UpdateDB (dictHosts)
+          LogEntry("{} hosts in results".format(iResultCount))
+          for dictHosts in APIResponse["HOST_LIST_OUTPUT"]["RESPONSE"]["HOST_LIST"]["HOST"]:
+            Write2CSV(dictHosts)
         else:
           iTotalCount += 1
           LogEntry ("Only one host in results")
-          # UpdateDB (APIResponse["HOST_LIST_OUTPUT"]["RESPONSE"]["HOST_LIST"]["HOST"])
+          Write2CSV (APIResponse["HOST_LIST_OUTPUT"]["RESPONSE"]["HOST_LIST"]["HOST"])
         LogEntry("total processed so far {}".format(iTotalCount))
       else:
         LogEntry("there is hosts list but no hosts, weird!!!!")
@@ -243,3 +269,4 @@ while bMoreData:
 
 LogEntry("Complete, processed {} hosts".format(iTotalCount))
 objLogOut.close()
+objCSVOut.close()
