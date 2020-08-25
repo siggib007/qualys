@@ -235,9 +235,14 @@ bMoreData = True
 iTotalCount = 0
 iCount = 1
 
-iLoc = strFileout.rfind(".")
-os.remove(strFileout[:iLoc])
-strCSVName = strFileout[:iLoc] + ".csv"
+iExtLoc = strFileout.rfind(".")
+iFileLoc = strFileout.rfind("/")
+strPath = strFileout[:iFileLoc]
+lstDir = os.listdir(strPath)
+for strFile in lstDir:
+  if strFile.startswith(strFileout[iFileLoc+1:iExtLoc]):
+    os.remove(os.path.join(strPath,strFile))
+strCSVName = strFileout[:iExtLoc] + ".csv"
 objCSVOut = open(strCSVName,"w",1)
 objCSVOut.write("AssetID,DNS,NetBIOS,IP,OS\n")
 
@@ -247,6 +252,7 @@ APIResponse = MakeAPICall(strURL,strHeader,strUserName,strPWD,strMethod)
 
 while bMoreData:
   if rawAPIResponse != "":
+    iLoc = strFileout.rfind(".")
     strFileChunkName = "{}-{}{}".format(strFileout[:iLoc],iCount,strFileout[iLoc:])
     LogEntry("Writing results to {}".format(strFileChunkName))
     objOutFile = open(strFileChunkName,"w",1)
