@@ -72,6 +72,14 @@ def processConf():
   global iBatchSize
   global strHostIDs
 
+  strBaseURL = ""
+  strHeader = ""
+  strUserName = ""
+  strPWD = ""
+  strFileout = ""
+  iBatchSize = 1000
+  strHostIDs = ""
+
   if os.path.isfile(strConf_File):
     LogEntry ("Configuration File exists")
   else:
@@ -215,7 +223,8 @@ strMethod = "get"
 dictParams = {}
 dictParams["action"] = "list"
 dictParams["truncation_limit"] = iBatchSize
-dictParams["ids"] = strHostIDs
+if strHostIDs != "" :
+  dictParams["ids"] = strHostIDs
 
 strListScans = urlparse.urlencode(dictParams)
 bMoreData = True
