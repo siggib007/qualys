@@ -155,15 +155,15 @@ def MakeAPICall (strURL, strHeader, strUserName,strPWD, strMethod):
   else:
     rawAPIResponse = ""
 
-  # try:
-  #   dictResponse = xmltodict.parse(WebRequest.text)
-  # except xml.parsers.expat.ExpatError as err:
-  #   # LogEntry("Expat Error: {}\n{}".format(err,WebRequest.text))
-  #   iErrCode = "Expat Error"
-  #   iErrText = "Expat Error: {}\n{}".format(err,WebRequest.text)
-  # except Exception as err:
-  #   LogEntry("Unkown xmltodict exception: {}".format(err))
-  #   CleanExit(", Unkown xmltodict exception, please check the logs")
+  try:
+    dictResponse = xmltodict.parse(WebRequest.text)
+  except xml.parsers.expat.ExpatError as err:
+    # LogEntry("Expat Error: {}\n{}".format(err,WebRequest.text))
+    iErrCode = "Expat Error"
+    iErrText = "Expat Error: {}\n{}".format(err,WebRequest.text)
+  except Exception as err:
+    LogEntry("Unkown xmltodict exception: {}".format(err))
+    CleanExit(", Unkown xmltodict exception, please check the logs")
 
   if isinstance(dictResponse,dict):
     if "SIMPLE_RETURN" in dictResponse:
