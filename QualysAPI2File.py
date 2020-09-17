@@ -310,7 +310,5 @@ while bMoreData:
     else:
       LogEntry ("No List Output")
 
-
-
 LogEntry("Complete, processed {} hosts".format(iTotalCount))
 objLogOut.close()
