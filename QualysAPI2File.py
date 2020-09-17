@@ -191,9 +191,21 @@ LogEntry("Starting Processing. Script {} running under Python version {}".format
 strFileout = strFileout.replace("\\","/")
 if not os.path.exists(os.path.dirname(strFileout)):
   LogEntry ("Path '{0}' for output files didn't exists, so I'm creating it!".format(strFileout))
-  os.makedirs(os.path.dirname(strFileout))
+  try:
+    os.makedirs(os.path.dirname(strFileout))
+  except Exception as err:
+    LogEntry ("failed to create output path. Error: {}".format(err),True)
+
 
 LogEntry ("API Function: {}".format(strAPIFunction))
+
+iLoc = strAPIFunction.rfind("/",0,-1)
+strAPIObject = strAPIFunction[iLoc+1:-1].upper()
+strObjListOutput = "{}_LIST_OUTPUT".format(strAPIObject)
+strObjList = "{}_LIST".format(strAPIObject)
+LogEntry("We are working with {} object, with {} and {}".format(strAPIObject,strObjListOutput,strObjList))
+
+LogEntry("Base filename provided: {}".format(strFileout))
 
 strMethod = "get"
 dictParams = {}
@@ -219,21 +231,26 @@ APIResponse = MakeAPICall(strURL,strHeader,strUserName,strPWD,strMethod)
 
 while bMoreData:
   if rawAPIResponse != "":
+    rawAPIResponse = rawAPIResponse.encode("ascii", "ignore")
+    rawAPIResponse = rawAPIResponse.decode("ascii", "ignore")
     iLoc = strFileout.rfind(".")
     strFileChunkName = "{}-{}{}".format(strFileout[:iLoc],iCount,strFileout[iLoc:])
     LogEntry("Writing results to {}".format(strFileChunkName))
     objOutFile = open(strFileChunkName,"w",1)
-    objOutFile.write(rawAPIResponse)
+    try:
+      objOutFile.write(rawAPIResponse)
+    except Exception as err:
+      LogEntry("Error when writing raw file: Error:{}".format(err),True)
     objOutFile.close()
     iCount += 1
   if isinstance (APIResponse,str):
     LogEntry (APIResponse)
     bMoreData = False
   if isinstance(APIResponse,dict):
-    if "HOST_LIST" in APIResponse["HOST_LIST_OUTPUT"]["RESPONSE"]:
-      if "HOST" in APIResponse["HOST_LIST_OUTPUT"]["RESPONSE"]["HOST_LIST"]:
-        if isinstance(APIResponse["HOST_LIST_OUTPUT"]["RESPONSE"]["HOST_LIST"]["HOST"],list):
-          iResultCount = len(APIResponse["HOST_LIST_OUTPUT"]["RESPONSE"]["HOST_LIST"]["HOST"])
+    if strObjList in APIResponse[strObjListOutput]["RESPONSE"]:
+      if strAPIObject in APIResponse[strObjListOutput]["RESPONSE"][strObjList]:
+        if isinstance(APIResponse[strObjListOutput]["RESPONSE"][strObjList][strAPIObject],list):
+          iResultCount = len(APIResponse[strObjListOutput]["RESPONSE"][strObjList][strAPIObject])
           iTotalCount += iResultCount
           LogEntry("{} hosts in results".format(iResultCount))
         else:
@@ -244,8 +261,8 @@ while bMoreData:
         LogEntry("there is hosts list but no hosts, weird!!!!")
     else:
       LogEntry ("There are no results")
-    if "WARNING" in APIResponse["HOST_LIST_OUTPUT"]["RESPONSE"]:
-      strURL = APIResponse["HOST_LIST_OUTPUT"]["RESPONSE"]["WARNING"]["URL"]
+    if "WARNING" in APIResponse[strObjListOutput]["RESPONSE"]:
+      strURL = APIResponse[strObjListOutput]["RESPONSE"]["WARNING"]["URL"]
       LogEntry ("Next URL: {}".format(strURL))
       APIResponse = MakeAPICall(strURL,strHeader,strUserName,strPWD,strMethod)
     else:
