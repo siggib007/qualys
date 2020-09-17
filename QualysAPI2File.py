@@ -70,12 +70,14 @@ def processConf():
   global strFileout
   global iBatchSize
   global strAPIFunction
+  global strParam
 
   strBaseURL = ""
   strHeader = ""
   strUserName = ""
   strPWD = ""
   strFileout = ""
+  strParam = ""
   iBatchSize = 1000
 
   if os.path.isfile(strConf_File):
@@ -113,6 +115,8 @@ def processConf():
         strPWD = strValue
       if strVarName == "OutfileName":
         strFileout  = strValue
+      if strVarName == "ParaMeters":
+        strParam  = strValue
       if strVarName == "BatchSize":
         iBatchSize = int(strValue)
 
@@ -163,7 +167,6 @@ def MakeAPICall (strURL, strHeader, strUserName,strPWD, strMethod):
     iErrText = "Expat Error: {}\n{}".format(err,WebRequest.text)
   except Exception as err:
     LogEntry("Unkown xmltodict exception: {}".format(err))
-    CleanExit(", Unkown xmltodict exception, please check the logs")
 
   if isinstance(dictResponse,dict):
     if "SIMPLE_RETURN" in dictResponse:
@@ -184,9 +187,47 @@ def MakeAPICall (strURL, strHeader, strUserName,strPWD, strMethod):
   else:
     return dictResponse
 
+def isInt (CheckValue):
+  # function to safely check if a value can be interpreded as an int
+  if isinstance(CheckValue,int):
+    return True
+  elif isinstance(CheckValue,str):
+    if CheckValue.isnumeric():
+      return True
+    else:
+      return False
+  else:
+    return False
+
 processConf()
 
 LogEntry("Starting Processing. Script {} running under Python version {}".format(strRealPath,strVersion))
+
+strMethod = "get"
+dictParams = {}
+
+if strParam != "":
+  lstStrParts = strParam.split(":")
+  for strFilter in lstStrParts:
+    lstFilterParts = strFilter.split("|")
+    if len(lstFilterParts) > 1:
+      if isInt(lstFilterParts[1]):
+        dictParams[lstFilterParts[0]] = int(lstFilterParts[1])
+      elif lstFilterParts[1][0]=="[":
+        lstTmp = lstFilterParts[1][1:-1].split(",")
+        lstClean = []
+        for strTemp in lstTmp:
+          if isInt(strTemp):
+            lstClean.append(int(strTemp))
+          else:
+            lstClean.append(strTemp)
+        dictParams[lstFilterParts[0]] = lstClean
+      else:
+        dictParams[lstFilterParts[0]] = lstFilterParts[1]
+  LogEntry ("Found filter:{}".format(dictParams))
+
+dictParams["action"] = "list"
+dictParams["truncation_limit"] = iBatchSize
 
 strFileout = strFileout.replace("\\","/")
 if not os.path.exists(os.path.dirname(strFileout)):
@@ -206,11 +247,6 @@ strObjList = "{}_LIST".format(strAPIObject)
 LogEntry("We are working with {} object, with {} and {}".format(strAPIObject,strObjListOutput,strObjList))
 
 LogEntry("Base filename provided: {}".format(strFileout))
-
-strMethod = "get"
-dictParams = {}
-dictParams["action"] = "list"
-dictParams["truncation_limit"] = iBatchSize
 
 strListScans = urlparse.urlencode(dictParams)
 bMoreData = True
