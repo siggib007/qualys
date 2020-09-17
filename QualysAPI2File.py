@@ -266,6 +266,7 @@ strURL = strBaseURL + strAPIFunction +"?" + strListScans
 APIResponse = MakeAPICall(strURL,strHeader,strUserName,strPWD,strMethod)
 
 while bMoreData:
+  bMoreData = False
   if rawAPIResponse != "":
     rawAPIResponse = rawAPIResponse.encode("ascii", "ignore")
     rawAPIResponse = rawAPIResponse.decode("ascii", "ignore")
@@ -303,8 +304,6 @@ while bMoreData:
           strURL = APIResponse[strObjListOutput]["RESPONSE"]["WARNING"]["URL"]
           LogEntry ("Next URL: {}".format(strURL))
           APIResponse = MakeAPICall(strURL,strHeader,strUserName,strPWD,strMethod)
-        else:
-          bMoreData = False        
       else:
         LogEntry ("No Response Object")
     else:
