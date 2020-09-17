@@ -296,20 +296,21 @@ while bMoreData:
               LogEntry ("Only one host in results")
             LogEntry("total processed so far {}".format(iTotalCount))
           else:
-            LogEntry("there is hosts list but no hosts, weird!!!!")
+            LogEntry("there is an object list but no objects, weird!!!!")
         else:
           LogEntry ("There are no Object List")
+        if "WARNING" in APIResponse[strObjListOutput]["RESPONSE"]:
+          strURL = APIResponse[strObjListOutput]["RESPONSE"]["WARNING"]["URL"]
+          LogEntry ("Next URL: {}".format(strURL))
+          APIResponse = MakeAPICall(strURL,strHeader,strUserName,strPWD,strMethod)
+        else:
+          bMoreData = False        
       else:
         LogEntry ("No Response Object")
     else:
       LogEntry ("No List Output")
 
-    if "WARNING" in APIResponse[strObjListOutput]["RESPONSE"]:
-      strURL = APIResponse[strObjListOutput]["RESPONSE"]["WARNING"]["URL"]
-      LogEntry ("Next URL: {}".format(strURL))
-      APIResponse = MakeAPICall(strURL,strHeader,strUserName,strPWD,strMethod)
-    else:
-      bMoreData = False
+
 
 LogEntry("Complete, processed {} hosts".format(iTotalCount))
 objLogOut.close()
