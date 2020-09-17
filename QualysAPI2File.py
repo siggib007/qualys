@@ -259,7 +259,10 @@ strPath = strFileout[:iFileLoc]
 lstDir = os.listdir(strPath)
 for strFile in lstDir:
   if strFile.startswith(strFileout[iFileLoc+1:iExtLoc]):
-    os.remove(os.path.join(strPath,strFile))
+    try:
+      os.remove(os.path.join(strPath,strFile))
+    except Exception as err:
+      LogEntry ("Error while attempting to delete {}. Error:{}".format(strFile,err))
 
 strURL = strBaseURL + strAPIFunction +"?" + strListScans
 
