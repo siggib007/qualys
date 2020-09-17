@@ -283,20 +283,27 @@ while bMoreData:
     LogEntry (APIResponse)
     bMoreData = False
   if isinstance(APIResponse,dict):
-    if strObjList in APIResponse[strObjListOutput]["RESPONSE"]:
-      if strAPIObject in APIResponse[strObjListOutput]["RESPONSE"][strObjList]:
-        if isinstance(APIResponse[strObjListOutput]["RESPONSE"][strObjList][strAPIObject],list):
-          iResultCount = len(APIResponse[strObjListOutput]["RESPONSE"][strObjList][strAPIObject])
-          iTotalCount += iResultCount
-          LogEntry("{} hosts in results".format(iResultCount))
+    if strObjListOutput in APIResponse:
+      if "RESPONSE" in APIResponse[strObjListOutput]:
+        if strObjList in APIResponse[strObjListOutput]["RESPONSE"]:
+          if strAPIObject in APIResponse[strObjListOutput]["RESPONSE"][strObjList]:
+            if isinstance(APIResponse[strObjListOutput]["RESPONSE"][strObjList][strAPIObject],list):
+              iResultCount = len(APIResponse[strObjListOutput]["RESPONSE"][strObjList][strAPIObject])
+              iTotalCount += iResultCount
+              LogEntry("{} hosts in results".format(iResultCount))
+            else:
+              iTotalCount += 1
+              LogEntry ("Only one host in results")
+            LogEntry("total processed so far {}".format(iTotalCount))
+          else:
+            LogEntry("there is hosts list but no hosts, weird!!!!")
         else:
-          iTotalCount += 1
-          LogEntry ("Only one host in results")
-        LogEntry("total processed so far {}".format(iTotalCount))
+          LogEntry ("There are no Object List")
       else:
-        LogEntry("there is hosts list but no hosts, weird!!!!")
+        LogEntry ("No Response Object")
     else:
-      LogEntry ("There are no results")
+      LogEntry ("No List Output")
+
     if "WARNING" in APIResponse[strObjListOutput]["RESPONSE"]:
       strURL = APIResponse[strObjListOutput]["RESPONSE"]["WARNING"]["URL"]
       LogEntry ("Next URL: {}".format(strURL))
