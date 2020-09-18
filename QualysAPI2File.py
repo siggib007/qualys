@@ -71,6 +71,7 @@ def processConf():
   global iBatchSize
   global strAPIFunction
   global strParam
+  global strAPIObject
 
   strBaseURL = ""
   strHeader = ""
@@ -78,6 +79,7 @@ def processConf():
   strPWD = ""
   strFileout = ""
   strParam = ""
+  strAPIObject = ""
   iBatchSize = 1000
 
   if os.path.isfile(strConf_File):
@@ -117,6 +119,8 @@ def processConf():
         strFileout  = strValue
       if strVarName == "ParaMeters":
         strParam  = strValue
+      if strVarName == "APIObject":
+        strAPIObject  = strValue
       if strVarName == "BatchSize":
         iBatchSize = int(strValue)
 
@@ -240,8 +244,9 @@ if not os.path.exists(os.path.dirname(strFileout)):
 
 LogEntry ("API Function: {}".format(strAPIFunction))
 
-iLoc = strAPIFunction.rfind("/",0,-1)
-strAPIObject = strAPIFunction[iLoc+1:-1].upper()
+if strAPIObject == "":
+  iLoc = strAPIFunction.rfind("/",0,-1)
+  strAPIObject = strAPIFunction[iLoc+1:-1].upper()
 strObjListOutput = "{}_LIST_OUTPUT".format(strAPIObject)
 strObjList = "{}_LIST".format(strAPIObject)
 LogEntry("We are working with {} object, with {} and {}".format(strAPIObject,strObjListOutput,strObjList))
@@ -269,7 +274,6 @@ strURL = strBaseURL + strAPIFunction +"?" + strListScans
 APIResponse = MakeAPICall(strURL,strHeader,strUserName,strPWD,strMethod)
 
 while bMoreData:
-  bMoreData = False
   if rawAPIResponse != "":
     rawAPIResponse = rawAPIResponse.encode("ascii", "ignore")
     rawAPIResponse = rawAPIResponse.decode("ascii", "ignore")
@@ -303,14 +307,19 @@ while bMoreData:
             LogEntry("there is an object list but no objects, weird!!!!")
         else:
           LogEntry ("There are no Object List")
+          bMoreData = False
         if "WARNING" in APIResponse[strObjListOutput]["RESPONSE"]:
           strURL = APIResponse[strObjListOutput]["RESPONSE"]["WARNING"]["URL"]
           LogEntry ("Next URL: {}".format(strURL))
           APIResponse = MakeAPICall(strURL,strHeader,strUserName,strPWD,strMethod)
+        else:
+          bMoreData = False
       else:
         LogEntry ("No Response Object")
+        bMoreData = False
     else:
       LogEntry ("No List Output")
+      bMoreData = False
 
 LogEntry("Complete, processed {} hosts".format(iTotalCount))
 objLogOut.close()
