@@ -211,9 +211,9 @@ strMethod = "get"
 dictParams = {}
 
 if strParam != "":
-  lstStrParts = strParam.split(":")
+  lstStrParts = strParam.split("|")
   for strFilter in lstStrParts:
-    lstFilterParts = strFilter.split("|")
+    lstFilterParts = strFilter.split(":")
     if len(lstFilterParts) > 1:
       if isInt(lstFilterParts[1]):
         dictParams[lstFilterParts[0]] = int(lstFilterParts[1])
