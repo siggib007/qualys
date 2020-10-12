@@ -6,4 +6,6 @@
 *.rar
 *.rpm
 *.bak
+*.xml
 Logs/
+test/
