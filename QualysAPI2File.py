@@ -21,7 +21,7 @@ import platform
 
 ISO = time.strftime("-%Y-%m-%d-%H-%M-%S")
 iLoc = sys.argv[0].rfind(".")
-strConf_File = sys.argv[0][:iLoc] + ".ini"
+# strConf_File = sys.argv[0][:iLoc] + ".ini"
 strBaseDir = os.path.dirname(sys.argv[0])
 if strBaseDir != "":
   if strBaseDir[-1:] != "/":
@@ -203,6 +203,14 @@ def isInt (CheckValue):
   else:
     return False
 
+if iSysArgLen > 1:
+  strConf_File = lstSysArg[1]
+  LogEntry("Argument provided, setting conf file to: {}".format(strConf_File))
+else:
+  iLoc = lstSysArg[0].rfind(".")
+  strConf_File = lstSysArg[0][:iLoc] + ".ini"
+  LogEntry("No Argument found, setting conf file to: {}".format(strConf_File))
+
 processConf()
 
 LogEntry("Starting Processing. Script {} running under Python version {}".format(strRealPath,strVersion))
@@ -247,6 +255,9 @@ LogEntry ("API Function: {}".format(strAPIFunction))
 if strAPIObject == "":
   iLoc = strAPIFunction.rfind("/",0,-1)
   strAPIObject = strAPIFunction[iLoc+1:-1].upper()
+else:
+  strAPIObject = strAPIObject.upper()
+  LogEntry("API Object: {} ".format(strAPIObject))
 strObjListOutput = "{}_LIST_OUTPUT".format(strAPIObject)
 strObjList = "{}_LIST".format(strAPIObject)
 LogEntry("We are working with {} object, with {} and {}".format(strAPIObject,strObjListOutput,strObjList))
