@@ -16,6 +16,7 @@ import xmltodict
 import urllib.parse as urlparse
 import xml.parsers.expat
 import platform
+import json
 # End imports
 
 
@@ -287,12 +288,14 @@ strURL = strBaseURL + strAPIFunction +"?" + strListScans
 APIResponse = MakeAPICall(strURL,strHeader,strUserName,strPWD,strMethod)
 
 while bMoreData:
+  iLoc = strFileout.rfind(".")
+  strFileChunkName = "{}-{}{}".format(strFileout[:iLoc],iCount,strFileout[iLoc:])
+  LogEntry("Writing raw XML results to {}".format(strFileChunkName))
+  strJsonChunkName = "{}-{}.json".format(strFileout[:iLoc],iCount)
+  LogEntry("Writing json results to {}".format(strJsonChunkName))
   if rawAPIResponse != "":
     rawAPIResponse = rawAPIResponse.encode("ascii", "ignore")
     rawAPIResponse = rawAPIResponse.decode("ascii", "ignore")
-    iLoc = strFileout.rfind(".")
-    strFileChunkName = "{}-{}{}".format(strFileout[:iLoc],iCount,strFileout[iLoc:])
-    LogEntry("Writing raw results to {}".format(strFileChunkName))
     objOutFile = open(strFileChunkName,"w",1)
     try:
       objOutFile.write(rawAPIResponse)
@@ -304,6 +307,13 @@ while bMoreData:
     LogEntry (APIResponse)
     bMoreData = False
   if isinstance(APIResponse,dict):
+    strJsonOut = json.dumps(APIResponse)
+    objFileJson = open(strJsonChunkName,"w",1)
+    try:
+      objFileJson.write(strJsonOut)
+    except Exception as err:
+      LogEntry("Error when writing json file: Error:{}".format(err),True)
+    objFileJson.close()    
     if strObjListOutput in APIResponse:
       if "RESPONSE" in APIResponse[strObjListOutput]:
         if strObjList in APIResponse[strObjListOutput]["RESPONSE"]:
