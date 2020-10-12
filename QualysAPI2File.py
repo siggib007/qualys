@@ -37,6 +37,8 @@ iLoc = strScriptName.rfind(".")
 strLogFile = strLogDir + "/" + strScriptName[:iLoc] + ISO + ".log"
 strRealPath = os.path.realpath(sys.argv[0])
 strVersion = "{0}.{1}.{2}".format(sys.version_info[0],sys.version_info[1],sys.version_info[2])
+lstSysArg = sys.argv
+iSysArgLen = len(lstSysArg)
 
 print ("This is a script to gather all asset host information from Qualys via API. This is running under Python Version {}".format(strVersion))
 print ("Running from: {}".format(strRealPath))
@@ -290,7 +292,7 @@ while bMoreData:
     rawAPIResponse = rawAPIResponse.decode("ascii", "ignore")
     iLoc = strFileout.rfind(".")
     strFileChunkName = "{}-{}{}".format(strFileout[:iLoc],iCount,strFileout[iLoc:])
-    LogEntry("Writing results to {}".format(strFileChunkName))
+    LogEntry("Writing raw results to {}".format(strFileChunkName))
     objOutFile = open(strFileChunkName,"w",1)
     try:
       objOutFile.write(rawAPIResponse)
