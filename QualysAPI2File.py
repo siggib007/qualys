@@ -287,12 +287,14 @@ strURL = strBaseURL + strAPIFunction +"?" + strListScans
 
 APIResponse = MakeAPICall(strURL,strHeader,strUserName,strPWD,strMethod)
 
+iLoc = strFileout.rfind(".")
+strJsonFileName = "{}.json".format(strFileout[:iLoc])
+objFileJson = open(strJsonFileName,"w",1)
+LogEntry("Writing json results to {}".format(strJsonFileName))
+objFileJson.write("[")
 while bMoreData:
-  iLoc = strFileout.rfind(".")
   strFileChunkName = "{}-{}{}".format(strFileout[:iLoc],iCount,strFileout[iLoc:])
   LogEntry("Writing raw XML results to {}".format(strFileChunkName))
-  strJsonChunkName = "{}-{}.json".format(strFileout[:iLoc],iCount)
-  LogEntry("Writing json results to {}".format(strJsonChunkName))
   if rawAPIResponse != "":
     rawAPIResponse = rawAPIResponse.encode("ascii", "ignore")
     rawAPIResponse = rawAPIResponse.decode("ascii", "ignore")
@@ -308,12 +310,14 @@ while bMoreData:
     bMoreData = False
   if isinstance(APIResponse,dict):
     strJsonOut = json.dumps(APIResponse)
-    objFileJson = open(strJsonChunkName,"w",1)
+    strJsonOut = strJsonOut[1:-1]
+    if iCount > 2:
+      strJsonOut = "," + strJsonOut
     try:
       objFileJson.write(strJsonOut)
     except Exception as err:
       LogEntry("Error when writing json file: Error:{}".format(err),True)
-    objFileJson.close()    
+
     if strObjListOutput in APIResponse:
       if "RESPONSE" in APIResponse[strObjListOutput]:
         if strObjList in APIResponse[strObjListOutput]["RESPONSE"]:
@@ -343,6 +347,7 @@ while bMoreData:
     else:
       LogEntry ("No List Output")
       bMoreData = False
-
+objFileJson.write("]")
 LogEntry("Complete, processed {} hosts".format(iTotalCount))
 objLogOut.close()
+objFileJson.close()
