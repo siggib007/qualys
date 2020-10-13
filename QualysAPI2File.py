@@ -309,20 +309,19 @@ while bMoreData:
     LogEntry (APIResponse)
     bMoreData = False
   if isinstance(APIResponse,dict):
-    strJsonOut = json.dumps(APIResponse)
-    strJsonOut = strJsonOut[1:-1]
-    if iCount > 2:
-      strJsonOut = "," + strJsonOut
-    try:
-      objFileJson.write(strJsonOut)
-    except Exception as err:
-      LogEntry("Error when writing json file: Error:{}".format(err),True)
-
     if strObjListOutput in APIResponse:
       if "RESPONSE" in APIResponse[strObjListOutput]:
         if strObjList in APIResponse[strObjListOutput]["RESPONSE"]:
           if strAPIObject in APIResponse[strObjListOutput]["RESPONSE"][strObjList]:
             if isinstance(APIResponse[strObjListOutput]["RESPONSE"][strObjList][strAPIObject],list):
+              strJsonOut = json.dumps(APIResponse[strObjListOutput]["RESPONSE"][strObjList][strAPIObject])
+              strJsonOut = strJsonOut[1:-1]
+              if iCount > 2:
+                strJsonOut = "," + strJsonOut
+              try:
+                objFileJson.write(strJsonOut)
+              except Exception as err:
+                LogEntry("Error when writing json file: Error:{}".format(err),True)
               iResultCount = len(APIResponse[strObjListOutput]["RESPONSE"][strObjList][strAPIObject])
               iTotalCount += iResultCount
               LogEntry("{} hosts in results".format(iResultCount))
