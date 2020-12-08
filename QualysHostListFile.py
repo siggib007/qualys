@@ -125,9 +125,11 @@ def processConf():
 
 def MakeAPICall (strURL, strHeader, strUserName,strPWD, strMethod):
   global rawAPIResponse
+  global dictResponse
+  global strErrCode
 
-  iErrCode = ""
-  iErrText = ""
+  strErrCode = ""
+  strErrText = ""
   dictResponse = {}
 
   LogEntry ("Doing a {} to URL: {}".format(strMethod,strURL))
@@ -144,8 +146,8 @@ def MakeAPICall (strURL, strHeader, strUserName,strPWD, strMethod):
 
   if isinstance(WebRequest,requests.models.Response)==False:
     LogEntry ("response is unknown type")
-    iErrCode = "ResponseErr"
-    iErrText = "response is unknown type"
+    strErrCode = "ResponseErr"
+    strErrText = "response is unknown type"
 
   LogEntry ("call resulted in status code {}".format(WebRequest.status_code))
   if WebRequest.status_code == 200:
@@ -158,8 +160,8 @@ def MakeAPICall (strURL, strHeader, strUserName,strPWD, strMethod):
     dictResponse = xmltodict.parse(WebRequest.text)
   except xml.parsers.expat.ExpatError as err:
     # LogEntry("Expat Error: {}\n{}".format(err,WebRequest.text))
-    iErrCode = "Expat Error"
-    iErrText = "Expat Error: {}\n{}".format(err,WebRequest.text)
+    strErrCode = "Expat Error"
+    strErrText = "Expat Error: {}\n{}".format(err,WebRequest.text)
   except Exception as err:
     LogEntry("Unkown xmltodict exception: {}".format(err))
     CleanExit(", Unkown xmltodict exception, please check the logs")
@@ -168,18 +170,20 @@ def MakeAPICall (strURL, strHeader, strUserName,strPWD, strMethod):
     if "SIMPLE_RETURN" in dictResponse:
       try:
         if "CODE" in dictResponse["SIMPLE_RETURN"]["RESPONSE"]:
-          iErrCode = dictResponse["SIMPLE_RETURN"]["RESPONSE"]["CODE"]
-          iErrText = dictResponse["SIMPLE_RETURN"]["RESPONSE"]["TEXT"]
+          strErrCode = dictResponse["SIMPLE_RETURN"]["RESPONSE"]["CODE"]
+        if "TEXT" in dictResponse["SIMPLE_RETURN"]["RESPONSE"]:
+          strErrText = dictResponse["SIMPLE_RETURN"]["RESPONSE"]["TEXT"]
+
       except KeyError as e:
         LogEntry ("KeyError: {}".format(e))
         LogEntry (WebRequest.text)
-        iErrCode = "Unknown"
-        iErrText = "Unexpected error"
+        strErrCode = "Unknown"
+        strErrText = "Unexpected error"
   else:
     LogEntry ("Response not a dictionary",True)
 
-  if iErrCode != "" or WebRequest.status_code !=200:
-    return "There was a problem with your request. HTTP error {} code {} {}".format(WebRequest.status_code,iErrCode,iErrText)
+  if strErrCode != "" or WebRequest.status_code !=200:
+    return "There was a problem with your request. HTTP error {} code {} {}".format(WebRequest.status_code,strErrCode,strErrText)
   else:
     return dictResponse
 
@@ -235,6 +239,7 @@ if strHostIDs != "" :
 strListScans = urlparse.urlencode(dictParams)
 bMoreData = True
 bSuccess = True
+objCSVOut = None
 iTotalCount = 0
 iCount = 1
 
@@ -249,6 +254,14 @@ strURL = strBaseURL + strAPIFunction +"?" + strListScans
 
 APIResponse = MakeAPICall(strURL,strHeader,strUserName,strPWD,strMethod)
 
+while strErrCode == "1965":
+  LogEntry ("Got Error 409 Code 1965, looking for retry interval")
+  if "ITEM_LIST" in dictResponse["SIMPLE_RETURN"]["RESPONSE"]:
+    iRetrySec = dictResponse["SIMPLE_RETURN"]["RESPONSE"]["ITEM_LIST"]["ITEM"]["VALUE"]
+    LogEntry("retrying in {} sec".format(iRetrySec))
+    time.sleep(iRetrySec)
+    APIResponse = MakeAPICall(strURL,strHeader,strUserName,strPWD,strMethod)
+
 if isinstance (APIResponse,str):
   LogEntry (APIResponse)
   bMoreData = False
@@ -259,7 +272,7 @@ else:
       os.remove(os.path.join(strPath,strFile))
   objCSVOut = open(strCSVName,"w",1)
   objCSVOut.write("AssetID,DNS,NetBIOS,IP,OS\n")
-  
+
 while bMoreData:
   if rawAPIResponse != "":
     iLoc = strFileout.rfind(".")
@@ -296,6 +309,13 @@ while bMoreData:
       strURL = APIResponse["HOST_LIST_OUTPUT"]["RESPONSE"]["WARNING"]["URL"]
       LogEntry ("Next URL: {}".format(strURL))
       APIResponse = MakeAPICall(strURL,strHeader,strUserName,strPWD,strMethod)
+      while strErrCode == 1965:
+        LogEntry ("Got Error 409 Code 1965, looking for retry interval")
+        if "ITEM_LIST" in dictResponse["SIMPLE_RETURN"]["RESPONSE"]:
+          iRetrySec = dictResponse["SIMPLE_RETURN"]["RESPONSE"]["ITEM_LIST"]["ITEM"]["VALUE"]
+          LogEntry("retrying in {} sec".format(iRetrySec))
+          time.sleep(iRetrySec)
+          APIResponse = MakeAPICall(strURL,strHeader,strUserName,strPWD,strMethod)      
     else:
       bMoreData = False
 
@@ -303,7 +323,9 @@ if bSuccess:
   LogEntry("Complete, processed {} hosts".format(iTotalCount))
 else:
   LogEntry("API FAILURE, ABORTED. Only processed {} hosts".format(iTotalCount))
-  objCSVOut.write("APIResponse\n")
+  if objCSVOut is not None:
+    objCSVOut.write("APIResponse\n")
 
 objLogOut.close()
-objCSVOut.close()
+if objCSVOut is not None:
+  objCSVOut.close()
