@@ -152,6 +152,7 @@ def MakeAPICall (strURL, strHeader, strUserName,strPWD, strMethod):
     rawAPIResponse = WebRequest.text
   else:
     rawAPIResponse = ""
+    LogEntry(WebRequest.text)
 
   try:
     dictResponse = xmltodict.parse(WebRequest.text)
@@ -233,6 +234,7 @@ if strHostIDs != "" :
 
 strListScans = urlparse.urlencode(dictParams)
 bMoreData = True
+bSuccess = True
 iTotalCount = 0
 iCount = 1
 
@@ -240,17 +242,24 @@ iExtLoc = strFileout.rfind(".")
 iFileLoc = strFileout.rfind("/")
 strPath = strFileout[:iFileLoc]
 lstDir = os.listdir(strPath)
-for strFile in lstDir:
-  if strFile.startswith(strFileout[iFileLoc+1:iExtLoc]):
-    os.remove(os.path.join(strPath,strFile))
+
 strCSVName = strFileout[:iExtLoc] + ".csv"
-objCSVOut = open(strCSVName,"w",1)
-objCSVOut.write("AssetID,DNS,NetBIOS,IP,OS\n")
 
 strURL = strBaseURL + strAPIFunction +"?" + strListScans
 
 APIResponse = MakeAPICall(strURL,strHeader,strUserName,strPWD,strMethod)
 
+if isinstance (APIResponse,str):
+  LogEntry (APIResponse)
+  bMoreData = False
+  bSuccess = False
+else:
+  for strFile in lstDir:
+    if strFile.startswith(strFileout[iFileLoc+1:iExtLoc]):
+      os.remove(os.path.join(strPath,strFile))
+  objCSVOut = open(strCSVName,"w",1)
+  objCSVOut.write("AssetID,DNS,NetBIOS,IP,OS\n")
+  
 while bMoreData:
   if rawAPIResponse != "":
     iLoc = strFileout.rfind(".")
@@ -263,6 +272,7 @@ while bMoreData:
   if isinstance (APIResponse,str):
     LogEntry (APIResponse)
     bMoreData = False
+    bSuccess = False
   if isinstance(APIResponse,dict):
     LogEntry("CSV Output will be written to {}".format(strCSVName))
     if "HOST_LIST" in APIResponse["HOST_LIST_OUTPUT"]["RESPONSE"]:
@@ -289,6 +299,11 @@ while bMoreData:
     else:
       bMoreData = False
 
-LogEntry("Complete, processed {} hosts".format(iTotalCount))
+if bSuccess:
+  LogEntry("Complete, processed {} hosts".format(iTotalCount))
+else:
+  LogEntry("API FAILURE, ABORTED. Only processed {} hosts".format(iTotalCount))
+  objCSVOut.write("APIResponse\n")
+
 objLogOut.close()
 objCSVOut.close()
