@@ -154,7 +154,7 @@ def MakeAPICall (strURL, strHeader, strUserName,strPWD, strMethod):
     rawAPIResponse = WebRequest.text
   else:
     rawAPIResponse = ""
-    LogEntry(WebRequest.text)
+    # LogEntry(WebRequest.text)
 
   try:
     dictResponse = xmltodict.parse(WebRequest.text)
@@ -257,7 +257,7 @@ APIResponse = MakeAPICall(strURL,strHeader,strUserName,strPWD,strMethod)
 while strErrCode == "1965":
   LogEntry ("Got Error 409 Code 1965, looking for retry interval")
   if "ITEM_LIST" in dictResponse["SIMPLE_RETURN"]["RESPONSE"]:
-    iRetrySec = dictResponse["SIMPLE_RETURN"]["RESPONSE"]["ITEM_LIST"]["ITEM"]["VALUE"]
+    iRetrySec = int(dictResponse["SIMPLE_RETURN"]["RESPONSE"]["ITEM_LIST"]["ITEM"]["VALUE"])
     LogEntry("retrying in {} sec".format(iRetrySec))
     time.sleep(iRetrySec)
     APIResponse = MakeAPICall(strURL,strHeader,strUserName,strPWD,strMethod)
