@@ -251,7 +251,6 @@ def main():
   strScriptName = os.path.basename(sys.argv[0])
   iLoc = sys.argv[0].rfind(".")
   strConf_File = sys.argv[0][:iLoc] + ".ini"
-  strScriptHost = platform.node().upper()
   strBaseDir = os.path.dirname(sys.argv[0])
   if strBaseDir != "":
     if strBaseDir[-1:] != "/":
@@ -276,6 +275,11 @@ def main():
   objLogOut = open(strLogFile,"w",1)
 
   dictConfig = processConf(strConf_File)
+  strScriptHost = platform.node().upper()
+  if strScriptHost in dictConfig:
+    strScriptHost = dictConfig[strScriptHost]
+    
+  LogEntry ("Starting {} on {}".format(strScriptName,strScriptHost))
 
   if "QUserID" in dictConfig:
     strUserName = dictConfig["QUserID"]
