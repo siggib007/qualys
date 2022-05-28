@@ -1,3 +1,3 @@
 # Qualys
 
-Qualys Automation projects
+Few Random Qualys Automation scripts
