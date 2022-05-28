@@ -503,7 +503,7 @@ def UpdateDB (dictResults):
   strSNsClass = "n/a"
   strBizName = "n/a"
   strOwner = "n/a"
-  strURL = "https://tmusworker.service-now.com/api/tmus2/t_cmdb/get_server_service_from_ip"
+  strURL = ""
   strMethod = "post"
   dictPayload["ip_address"] = strIPaddr
   APIResponse = MakeAPICall(strURL,dictHeader,strSNOWUser,strSNOWPWD,strMethod,dictPayload)
